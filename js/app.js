@@ -802,37 +802,98 @@ const API_BASE = '/.netlify/functions';
 // API CALLS
 // ====================================
 
+// ====================================
+// API CONFIGURATION
+// ====================================
+
+const API_BASE = '/.netlify/functions';
+
+// ====================================
+// API CALLS - VERSIONE CORRETTA
+// ====================================
+
 async function apiCall(endpoint, options = {}) {
     const token = localStorage.getItem('token');
     
-    const defaultOptions = {
-        headers: {
-            'Content-Type': 'application/json',
-            ...(token && { 'Authorization': `Bearer ${token}` })
-        }
+    // Merge headers correttamente
+    const headers = {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` }),
+        ...(options.headers || {})
     };
     
+    // Costruisci opzioni complete
+    const fetchOptions = {
+        ...options,
+        headers: headers
+    };
+    
+    // Se c'è un body e non è una stringa, convertilo in JSON
+    if (fetchOptions.body && typeof fetchOptions.body !== 'string') {
+        fetchOptions.body = JSON.stringify(fetchOptions.body);
+    }
+    
+    const url = `${API_BASE}/${endpoint}`;
+    
+    console.log('API Call:', {
+        url: url,
+        method: fetchOptions.method || 'GET',
+        headers: fetchOptions.headers,
+        body: fetchOptions.body
+    });
+    
     try {
-        const response = await fetch(`${API_BASE}/${endpoint}`, {
-            ...defaultOptions,
-            ...options
-        });
+        const response = await fetch(url, fetchOptions);
         
-        const data = await response.json();
+        // Log della risposta per debug
+        console.log('Response status:', response.status);
+        console.log('Response headers:', response.headers);
+        
+        // Prova a parsare la risposta
+        let data;
+        const contentType = response.headers.get('content-type');
+        
+        if (contentType && contentType.includes('application/json')) {
+            data = await response.json();
+        } else {
+            // Se non è JSON, leggi come testo
+            const text = await response.text();
+            console.log('Response text:', text);
+            
+            // Prova comunque a parsare come JSON
+            try {
+                data = JSON.parse(text);
+            } catch {
+                data = { error: text || 'Unknown error' };
+            }
+        }
+        
+        console.log('Response data:', data);
         
         if (!response.ok) {
-            throw new Error(data.error || 'API call failed');
+            throw new Error(data.error || data.message || `HTTP ${response.status}: ${response.statusText}`);
         }
         
         return data;
+        
     } catch (error) {
-        console.error('API Error:', error);
+        console.error('API Error Details:', {
+            endpoint: endpoint,
+            error: error.message,
+            stack: error.stack
+        });
+        
+        // Se è un errore di rete
+        if (error instanceof TypeError && error.message === 'Failed to fetch') {
+            throw new Error('Errore di connessione. Verifica che le funzioni Netlify siano attive.');
+        }
+        
         throw error;
     }
 }
 
 // ====================================
-// AUTHENTICATION WITH DATABASE
+// AUTHENTICATION WITH DATABASE - VERSIONE CORRETTA
 // ====================================
 
 async function handleLogin(e) {
@@ -841,15 +902,19 @@ async function handleLogin(e) {
     const email = e.target[0].value;
     const password = e.target[1].value;
     
+    console.log('Attempting login with:', { email });
+    
     try {
         const response = await apiCall('user-auth', {
             method: 'POST',
-            body: JSON.stringify({
+            body: {  // Passa l'oggetto direttamente, verrà convertito in JSON da apiCall
                 action: 'login',
-                email,
-                password
-            })
+                email: email,
+                password: password
+            }
         });
+        
+        console.log('Login response:', response);
         
         if (response.success) {
             localStorage.setItem('token', response.token);
@@ -861,12 +926,16 @@ async function handleLogin(e) {
             updateUIAfterLogin();
             saveUserData();
             closeLoginModal();
+            showNotification('Login effettuato con successo!', 'success');
             
             // Load user collection from database
             await loadUserCollection();
+        } else {
+            showNotification('Login fallito: ' + (response.error || 'Credenziali non valide'), 'error');
         }
     } catch (error) {
-        showNotification('Login fallito: ' + error.message, 'error');
+        console.error('Login error:', error);
+        showNotification('Errore durante il login: ' + error.message, 'error');
     }
 }
 
@@ -877,16 +946,20 @@ async function handleSignup(e) {
     const email = e.target[1].value;
     const password = e.target[2].value;
     
+    console.log('Attempting signup with:', { username, email });
+    
     try {
         const response = await apiCall('user-auth', {
             method: 'POST',
-            body: JSON.stringify({
+            body: {  // Passa l'oggetto direttamente
                 action: 'register',
-                username,
-                email,
-                password
-            })
+                username: username,
+                email: email,
+                password: password
+            }
         });
+        
+        console.log('Signup response:', response);
         
         if (response.success) {
             localStorage.setItem('token', response.token);
@@ -898,13 +971,53 @@ async function handleSignup(e) {
             updateUIAfterLogin();
             saveUserData();
             closeSignupModal();
-            showNotification('Registrazione completata!', 'success');
+            showNotification('Registrazione completata con successo!', 'success');
+        } else {
+            showNotification('Registrazione fallita: ' + (response.error || 'Errore sconosciuto'), 'error');
         }
     } catch (error) {
-        showNotification('Registrazione fallita: ' + error.message, 'error');
+        console.error('Signup error:', error);
+        showNotification('Errore durante la registrazione: ' + error.message, 'error');
     }
 }
 
+// ====================================
+// TEST FUNCTION - Aggiungi questa per testare
+// ====================================
+
+async function testConnection() {
+    console.log('Testing API connection...');
+    
+    try {
+        // Test 1: Prova a raggiungere l'endpoint direttamente
+        const response = await fetch('/.netlify/functions/manga-get');
+        console.log('Direct fetch response:', response);
+        
+        const text = await response.text();
+        console.log('Response text:', text);
+        
+        try {
+            const json = JSON.parse(text);
+            console.log('Parsed JSON:', json);
+        } catch (e) {
+            console.log('Not JSON:', e);
+        }
+        
+    } catch (error) {
+        console.error('Connection test failed:', error);
+    }
+}
+
+// Aggiungi questa riga per testare la connessione quando la pagina si carica
+document.addEventListener('DOMContentLoaded', function() {
+    // Test della connessione
+    testConnection();
+    
+    // Resto del codice esistente...
+});
+
+
+ 
 // ====================================
 // LOAD DATA FROM DATABASE
 // ====================================
