@@ -4,348 +4,88 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Impostazioni - MangaBox</title>
-    <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="settings.css">
+    <link rel="stylesheet" href="css/styles.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
-    <div id="headerContainer"></div>
-    
-    <div class="settings-container">
-        <div class="settings-sidebar">
-            <h2>Impostazioni</h2>
-            <nav class="settings-nav">
-                <a href="#account" class="settings-nav-item active">
-                    <i class="fas fa-user"></i> Account
-                </a>
-                <a href="#profile" class="settings-nav-item">
-                    <i class="fas fa-id-card"></i> Profilo
-                </a>
-                <a href="#privacy" class="settings-nav-item">
-                    <i class="fas fa-lock"></i> Privacy
-                </a>
-                <a href="#notifications" class="settings-nav-item">
-                    <i class="fas fa-bell"></i> Notifiche
-                </a>
-                <a href="#preferences" class="settings-nav-item">
-                    <i class="fas fa-cog"></i> Preferenze
-                </a>
-                <a href="#import-export" class="settings-nav-item">
-                    <i class="fas fa-exchange-alt"></i> Import/Export
-                </a>
-                <a href="#connected" class="settings-nav-item">
-                    <i class="fas fa-link"></i> Account Collegati
-                </a>
-            </nav>
-        </div>
-        
-        <div class="settings-content">
-            <!-- Account Section -->
-            <section id="account" class="settings-section active">
-                <h2>Impostazioni Account</h2>
-                
-                <div class="settings-group">
-                    <h3>Informazioni Account</h3>
-                    <div class="form-group">
-                        <label>Email</label>
-                        <input type="email" id="accountEmail" value="">
-                        <button class="btn-change">Cambia Email</button>
+    <!-- Header -->
+    <header class="main-header">
+        <nav class="navbar">
+            <div class="nav-container">
+                <div class="logo" onclick="window.location.href='index.html'">
+                    <i class="fas fa-book-open"></i>
+                    <span>MangaBox</span>
+                </div>
+                <ul class="nav-menu">
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="explore.html">Esplora</a></li>
+                    <li><a href="index.html#my-library">La mia Libreria</a></li>
+                    <li><a href="lists.html">Liste</a></li>
+                    <li><a href="feed.html">Feed</a></li>
+                    <li><a href="messages.html">Messaggi</a></li>
+                    <li><a href="profile.html">Profilo</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <div style="max-width: 1000px; margin: 0 auto; padding: 2rem;">
+        <h1>Impostazioni</h1>
+
+        <div style="display: grid; gap: 2rem; margin-top: 2rem;">
+            <!-- Account Settings -->
+            <div style="background: #1C2128; padding: 2rem; border-radius: 10px;">
+                <h2 style="margin-bottom: 1.5rem;">Account</h2>
+                <div style="display: grid; gap: 1rem;">
+                    <div>
+                        <label style="color: #9AB; display: block; margin-bottom: 0.5rem;">Email</label>
+                        <input type="email" value="user@example.com" style="width: 100%; padding: 0.8rem; background: #14181C; border: 1px solid #2C3440; border-radius: 4px; color: white;">
                     </div>
-                    
-                    <div class="form-group">
-                        <label>Username</label>
-                        <input type="text" id="accountUsername" value="">
-                        <button class="btn-change">Cambia Username</button>
+                    <div>
+                        <label style="color: #9AB; display: block; margin-bottom: 0.5rem;">Username</label>
+                        <input type="text" value="MangaLover" style="width: 100%; padding: 0.8rem; background: #14181C; border: 1px solid #2C3440; border-radius: 4px; color: white;">
                     </div>
-                    
-                    <div class="form-group">
-                        <label>Password</label>
+                    <div>
                         <button class="btn-primary">Cambia Password</button>
                     </div>
                 </div>
-                
-                <div class="settings-group danger-zone">
-                    <h3>Zona Pericolosa</h3>
-                    <div class="danger-actions">
-                        <button class="btn-danger" onclick="deactivateAccount()">
-                            Disattiva Account
-                        </button>
-                        <button class="btn-danger" onclick="deleteAccount()">
-                            Elimina Account
-                        </button>
-                    </div>
+            </div>
+
+            <!-- Privacy Settings -->
+            <div style="background: #1C2128; padding: 2rem; border-radius: 10px;">
+                <h2 style="margin-bottom: 1.5rem;">Privacy</h2>
+                <div style="display: grid; gap: 1rem;">
+                    <label style="display: flex; align-items: center; justify-content: space-between;">
+                        <span>Profilo Pubblico</span>
+                        <input type="checkbox" checked>
+                    </label>
+                    <label style="display: flex; align-items: center; justify-content: space-between;">
+                        <span>Mostra Collezione</span>
+                        <input type="checkbox" checked>
+                    </label>
+                    <label style="display: flex; align-items: center; justify-content: space-between;">
+                        <span>Mostra Statistiche</span>
+                        <input type="checkbox" checked>
+                    </label>
                 </div>
-            </section>
-            
-            <!-- Profile Section -->
-            <section id="profile" class="settings-section">
-                <h2>Impostazioni Profilo</h2>
-                
-                <div class="settings-group">
-                    <h3>Informazioni Pubbliche</h3>
-                    
-                    <div class="form-group">
-                        <label>Nome Visualizzato</label>
-                        <input type="text" id="displayName" placeholder="Il tuo nome">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Bio</label>
-                        <textarea id="bio" rows="4" placeholder="Parlaci di te..."></textarea>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Località</label>
-                        <input type="text" id="location" placeholder="Città, Paese">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Sito Web</label>
-                        <input type="url" id="website" placeholder="https://...">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Social Media</label>
-                        <div class="social-inputs">
-                            <input type="text" id="twitter" placeholder="Twitter username">
-                            <input type="text" id="instagram" placeholder="Instagram username">
-                            <input type="text" id="discord" placeholder="Discord username">
-                        </div>
-                    </div>
+            </div>
+
+            <!-- Export Data -->
+            <div style="background: #1C2128; padding: 2rem; border-radius: 10px;">
+                <h2 style="margin-bottom: 1.5rem;">Esporta Dati</h2>
+                <p style="color: #9AB; margin-bottom: 1rem;">Scarica tutti i tuoi dati in formato JSON o CSV</p>
+                <div style="display: flex; gap: 1rem;">
+                    <button class="btn-primary" onclick="exportData('json')">
+                        <i class="fas fa-download"></i> Esporta JSON
+                    </button>
+                    <button class="btn-primary" onclick="exportData('csv')">
+                        <i class="fas fa-download"></i> Esporta CSV
+                    </button>
                 </div>
-                
-                <button class="btn-save">Salva Modifiche</button>
-            </section>
-            
-            <!-- Privacy Section -->
-            <section id="privacy" class="settings-section">
-                <h2>Impostazioni Privacy</h2>
-                
-                <div class="settings-group">
-                    <h3>Visibilità Profilo</h3>
-                    
-                    <div class="toggle-setting">
-                        <div class="setting-info">
-                            <h4>Profilo Pubblico</h4>
-                            <p>Permetti a tutti di vedere il tuo profilo</p>
-                        </div>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="publicProfile" checked>
-                            <span class="toggle-slider"></span>
-                        </label>
-                    </div>
-                    
-                    <div class="toggle-setting">
-                        <div class="setting-info">
-                            <h4>Mostra Collezione</h4>
-                            <p>Altri utenti possono vedere la tua collezione</p>
-                        </div>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="showCollection" checked>
-                            <span class="toggle-slider"></span>
-                        </label>
-                    </div>
-                    
-                    <div class="toggle-setting">
-                        <div class="setting-info">
-                            <h4>Mostra Statistiche</h4>
-                            <p>Rendi visibili le tue statistiche di lettura</p>
-                        </div>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="showStats" checked>
-                            <span class="toggle-slider"></span>
-                        </label>
-                    </div>
-                    
-                    <div class="toggle-setting">
-                        <div class="setting-info">
-                            <h4>Mostra Attività</h4>
-                            <p>Le tue attività appaiono nel feed pubblico</p>
-                        </div>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="showActivity" checked>
-                            <span class="toggle-slider"></span>
-                        </label>
-                    </div>
-                </div>
-                
-                <div class="settings-group">
-                    <h3>Chi può...</h3>
-                    
-                    <div class="permission-setting">
-                        <label>Inviarti messaggi</label>
-                        <select>
-                            <option>Tutti</option>
-                            <option>Solo chi segui</option>
-                            <option>Nessuno</option>
-                        </select>
-                    </div>
-                    
-                    <div class="permission-setting">
-                        <label>Vedere la tua wishlist</label>
-                        <select>
-                            <option>Tutti</option>
-                            <option>Solo chi segui</option>
-                            <option>Solo tu</option>
-                        </select>
-                    </div>
-                </div>
-            </section>
-            
-            <!-- Notifications Section -->
-            <section id="notifications" class="settings-section">
-                <h2>Impostazioni Notifiche</h2>
-                
-                <div class="settings-group">
-                    <h3>Notifiche Email</h3>
-                    
-                    <div class="toggle-setting">
-                        <div class="setting-info">
-                            <h4>Nuovi Follower</h4>
-                            <p>Ricevi una email quando qualcuno ti segue</p>
-                        </div>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="emailFollowers">
-                            <span class="toggle-slider"></span>
-                        </label>
-                    </div>
-                    
-                    <div class="toggle-setting">
-                        <div class="setting-info">
-                            <h4>Recensioni e Commenti</h4>
-                            <p>Notifiche per interazioni con le tue recensioni</p>
-                        </div>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="emailComments" checked>
-                            <span class="toggle-slider"></span>
-                        </label>
-                    </div>
-                    
-                    <div class="toggle-setting">
-                        <div class="setting-info">
-                            <h4>Newsletter</h4>
-                            <p>Aggiornamenti settimanali sui nuovi manga</p>
-                        </div>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="emailNewsletter" checked>
-                            <span class="toggle-slider"></span>
-                        </label>
-                    </div>
-                </div>
-                
-                <div class="settings-group">
-                    <h3>Notifiche Push</h3>
-                    
-                    <div class="toggle-setting">
-                        <div class="setting-info">
-                            <h4>Attiva Notifiche Push</h4>
-                            <p>Ricevi notifiche nel browser</p>
-                        </div>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="pushEnabled">
-                            <span class="toggle-slider"></span>
-                        </label>
-                    </div>
-                </div>
-            </section>
-            
-            <!-- Preferences Section -->
-            <section id="preferences" class="settings-section">
-                <h2>Preferenze</h2>
-                
-                <div class="settings-group">
-                    <h3>Aspetto</h3>
-                    
-                    <div class="form-group">
-                        <label>Tema</label>
-                        <select id="theme">
-                            <option value="dark">Scuro</option>
-                            <option value="light">Chiaro</option>
-                            <option value="auto">Automatico</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Lingua</label>
-                        <select id="language">
-                            <option value="it">Italiano</option>
-                            <option value="en">English</option>
-                            <option value="es">Español</option>
-                            <option value="fr">Français</option>
-                            <option value="de">Deutsch</option>
-                            <option value="ja">日本語</option>
-                        </select>
-                    </div>
-                </div>
-                
-                <div class="settings-group">
-                    <h3>Contenuti</h3>
-                    
-                    <div class="form-group">
-                        <label>Contenuti per pagina</label>
-                        <select id="itemsPerPage">
-                            <option value="20">20</option>
-                            <option value="40">40</option>
-                            <option value="60">60</option>
-                            <option value="100">100</option>
-                        </select>
-                    </div>
-                    
-                    <div class="toggle-setting">
-                        <div class="setting-info">
-                            <h4>Contenuti per Adulti</h4>
-                            <p>Mostra manga con contenuti maturi</p>
-                        </div>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="adultContent">
-                            <span class="toggle-slider"></span>
-                        </label>
-                    </div>
-                </div>
-            </section>
-            
-            <!-- Import/Export Section -->
-            <section id="import-export" class="settings-section">
-                <h2>Import/Export Dati</h2>
-                
-                <div class="settings-group">
-                    <h3>Importa da Altri Servizi</h3>
-                    
-                    <div class="import-service">
-                        <img src="https://via.placeholder.com/50" alt="MyAnimeList">
-                        <div>
-                            <h4>MyAnimeList</h4>
-                            <p>Importa la tua lista manga da MAL</p>
-                        </div>
-                        <button class="btn-import">Importa</button>
-                    </div>
-                    
-                    <div class="import-service">
-                        <img src="https://via.placeholder.com/50" alt="AniList">
-                        <div>
-                            <h4>AniList</h4>
-                            <p>Importa da AniList</p>
-                        </div>
-                        <button class="btn-import">Importa</button>
-                    </div>
-                </div>
-                
-                <div class="settings-group">
-                    <h3>Esporta i Tuoi Dati</h3>
-                    <p>Scarica tutti i tuoi dati in formato JSON o CSV</p>
-                    <div class="export-actions">
-                        <button class="btn-export" onclick="exportData('json')">
-                            <i class="fas fa-download"></i> Esporta JSON
-                        </button>
-                        <button class="btn-export" onclick="exportData('csv')">
-                            <i class="fas fa-download"></i> Esporta CSV
-                        </button>
-                    </div>
-                </div>
-            </section>
+            </div>
         </div>
     </div>
 
-    <script src="settings.js"></script>
+    <script src="js/app.js"></script>
 </body>
 </html>

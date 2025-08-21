@@ -4,126 +4,114 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Messaggi - MangaBox</title>
-    <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="messages.css">
+    <link rel="stylesheet" href="css/styles.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
-    <div id="headerContainer"></div>
-    
-    <div class="messages-container">
-        <!-- Conversations List -->
-        <div class="conversations-sidebar">
-            <div class="conversations-header">
-                <h2>Messaggi</h2>
-                <button class="btn-new-message" onclick="startNewMessage()">
-                    <i class="fas fa-edit"></i>
-                </button>
+    <!-- Header -->
+    <header class="main-header">
+        <nav class="navbar">
+            <div class="nav-container">
+                <div class="logo" onclick="window.location.href='index.html'">
+                    <i class="fas fa-book-open"></i>
+                    <span>MangaBox</span>
+                </div>
+                <ul class="nav-menu">
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="explore.html">Esplora</a></li>
+                    <li><a href="index.html#my-library">La mia Libreria</a></li>
+                    <li><a href="lists.html">Liste</a></li>
+                    <li><a href="feed.html">Feed</a></li>
+                    <li><a href="messages.html" class="active">Messaggi</a></li>
+                    <li><a href="profile.html">Profilo</a></li>
+                </ul>
             </div>
-            
-            <div class="conversations-search">
-                <input type="text" placeholder="Cerca conversazioni..." id="searchConversations">
-            </div>
-            
-            <div class="conversations-list" id="conversationsList">
+        </nav>
+    </header>
+
+    <div style="max-width: 1200px; margin: 0 auto; padding: 2rem;">
+        <h1>Messaggi</h1>
+
+        <div style="display: grid; grid-template-columns: 350px 1fr; gap: 2rem; margin-top: 2rem; height: 600px;">
+            <!-- Conversations List -->
+            <div style="background: #1C2128; border-radius: 10px; overflow-y: auto;">
+                <div style="padding: 1rem; border-bottom: 1px solid #2C3440;">
+                    <input type="text" placeholder="Cerca conversazioni..." 
+                           style="width: 100%; padding: 0.8rem; background: #14181C; border: 1px solid #2C3440; 
+                                  border-radius: 20px; color: white;">
+                </div>
+                
                 <!-- Conversation items -->
-            </div>
-        </div>
-        
-        <!-- Chat Area -->
-        <div class="chat-area">
-            <div class="chat-header" id="chatHeader">
-                <div class="chat-user-info">
-                    <img src="https://via.placeholder.com/40" alt="" id="chatUserAvatar">
-                    <div>
-                        <h3 id="chatUserName">Seleziona una conversazione</h3>
-                        <span class="user-status" id="chatUserStatus">Offline</span>
+                <div style="padding: 1rem; border-bottom: 1px solid #2C3440; cursor: pointer; background: #14181C;">
+                    <div style="display: flex; gap: 1rem;">
+                        <img src="https://via.placeholder.com/40" alt="Avatar" style="width: 40px; height: 40px; border-radius: 50%;">
+                        <div style="flex: 1;">
+                            <p style="font-weight: bold;">MangaExpert</p>
+                            <p style="color: #9AB; font-size: 0.9rem;">Hai letto l'ultimo volume?</p>
+                        </div>
+                        <span style="color: #9AB; font-size: 0.8rem;">2h</span>
                     </div>
                 </div>
-                <div class="chat-actions">
-                    <button onclick="toggleUserInfo()"><i class="fas fa-info-circle"></i></button>
-                    <button onclick="deleteConversation()"><i class="fas fa-trash"></i></button>
-                    <button onclick="blockUser()"><i class="fas fa-ban"></i></button>
-                </div>
-            </div>
-            
-            <div class="chat-messages" id="chatMessages">
-                <div class="no-conversation">
-                    <i class="fas fa-comments"></i>
-                    <p>Seleziona una conversazione per iniziare</p>
-                </div>
-            </div>
-            
-            <div class="chat-input-area" id="chatInputArea" style="display: none;">
-                <div class="typing-indicator" id="typingIndicator" style="display: none;">
-                    <span id="typingUser"></span> sta scrivendo...
-                </div>
-                <div class="message-input-container">
-                    <button class="attach-btn" onclick="attachFile()">
-                        <i class="fas fa-paperclip"></i>
-                    </button>
-                    <input type="text" id="messageInput" placeholder="Scrivi un messaggio...">
-                    <button class="emoji-btn" onclick="toggleEmojiPicker()">
-                        <i class="fas fa-smile"></i>
-                    </button>
-                    <button class="send-btn" onclick="sendMessage()">
-                        <i class="fas fa-paper-plane"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-        
-        <!-- User Info Sidebar -->
-        <div class="user-info-sidebar" id="userInfoSidebar" style="display: none;">
-            <div class="user-info-header">
-                <h3>Info Utente</h3>
-                <button onclick="toggleUserInfo()">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="user-info-content">
-                <img src="https://via.placeholder.com/100" alt="" class="user-info-avatar">
-                <h4 id="infoUserName">Nome Utente</h4>
-                <p id="infoUserBio">Bio dell'utente</p>
-                
-                <div class="shared-content">
-                    <h5>Manga in comune</h5>
-                    <div class="shared-manga-list" id="sharedMangaList">
-                        <!-- Shared manga -->
+
+                <div style="padding: 1rem; border-bottom: 1px solid #2C3440; cursor: pointer;">
+                    <div style="display: flex; gap: 1rem;">
+                        <img src="https://via.placeholder.com/40" alt="Avatar" style="width: 40px; height: 40px; border-radius: 50%;">
+                        <div style="flex: 1;">
+                            <p style="font-weight: bold;">ShonenFan</p>
+                            <p style="color: #9AB; font-size: 0.9rem;">Grazie per il consiglio!</p>
+                        </div>
+                        <span style="color: #9AB; font-size: 0.8rem;">1g</span>
                     </div>
                 </div>
-                
-                <div class="user-info-actions">
-                    <button onclick="viewProfile()">Vedi Profilo</button>
-                    <button onclick="shareList()">Condividi Lista</button>
+            </div>
+
+            <!-- Chat Area -->
+            <div style="background: #1C2128; border-radius: 10px; display: flex; flex-direction: column;">
+                <!-- Chat Header -->
+                <div style="padding: 1rem; border-bottom: 1px solid #2C3440;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div style="display: flex; gap: 1rem; align-items: center;">
+                            <img src="https://via.placeholder.com/40" alt="Avatar" style="width: 40px; height: 40px; border-radius: 50%;">
+                            <div>
+                                <p style="font-weight: bold;">MangaExpert</p>
+                                <p style="color: #10b981; font-size: 0.9rem;">Online</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- New Message Modal -->
-    <div id="newMessageModal" class="modal">
-        <div class="modal-content new-message-modal">
-            <span class="close" onclick="closeNewMessageModal()">&times;</span>
-            <h3>Nuovo Messaggio</h3>
-            
-            <div class="recipient-search">
-                <label>A:</label>
-                <input type="text" id="recipientSearch" placeholder="Cerca utente...">
-                <div class="search-results" id="userSearchResults"></div>
-            </div>
-            
-            <div class="message-compose">
-                <textarea id="newMessageText" rows="5" placeholder="Scrivi il tuo messaggio..."></textarea>
-            </div>
-            
-            <div class="modal-actions">
-                <button class="btn-send" onclick="sendNewMessage()">Invia</button>
-                <button class="btn-cancel" onclick="closeNewMessageModal()">Annulla</button>
+
+                <!-- Messages -->
+                <div style="flex: 1; padding: 1rem; overflow-y: auto;">
+                    <div style="margin-bottom: 1rem;">
+                        <div style="background: #14181C; padding: 1rem; border-radius: 18px; max-width: 70%; display: inline-block;">
+                            <p>Ciao! Hai letto l'ultimo volume di One Piece?</p>
+                            <p style="color: #9AB; font-size: 0.8rem; margin-top: 0.5rem;">14:30</p>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-bottom: 1rem; text-align: right;">
+                        <div style="background: #FF6B6B; padding: 1rem; border-radius: 18px; max-width: 70%; display: inline-block; text-align: left;">
+                            <p>Sì! È incredibile! Non me l'aspettavo proprio!</p>
+                            <p style="color: rgba(255,255,255,0.8); font-size: 0.8rem; margin-top: 0.5rem;">14:32</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Input -->
+                <div style="padding: 1rem; border-top: 1px solid #2C3440;">
+                    <div style="display: flex; gap: 1rem;">
+                        <input type="text" placeholder="Scrivi un messaggio..." 
+                               style="flex: 1; padding: 0.8rem; background: #14181C; border: 1px solid #2C3440; 
+                                      border-radius: 20px; color: white;">
+                        <button class="btn-primary" style="border-radius: 50%; width: 40px; height: 40px; padding: 0;">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <script src="messages.js"></script>
+    <script src="js/app.js"></script>
 </body>
 </html>
