@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feed - MangaBox</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="feed.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div id="headerContainer"></div>
+    
+    <div class="feed-container">
+        <div class="feed-sidebar">
+            <!-- Quick Stats -->
+            <div class="quick-stats widget">
+                <h3>Le tue statistiche</h3>
+                <div class="stat-item">
+                    <span class="stat-icon">📚</span>
+                    <div>
+                        <div class="stat-value">23</div>
+                        <div class="stat-label">Questo mese</div>
+                    </div>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-icon">🔥</span>
+                    <div>
+                        <div class="stat-value">7</div>
+                        <div class="stat-label">Streak giorni</div>
+                    </div>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-icon">⭐</span>
+                    <div>
+                        <div class="stat-value">4.2</div>
+                        <div class="stat-label">Media voti</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Trending Tags -->
+            <div class="trending-tags widget">
+                <h3>Tag di tendenza</h3>
+                <div class="tag-cloud">
+                    <span class="trend-tag">#OnePiece1100</span>
+                    <span class="trend-tag">#NewRelease</span>
+                    <span class="trend-tag">#MangaMonday</span>
+                    <span class="trend-tag">#Shonen</span>
+                    <span class="trend-tag">#ReadingChallenge2024</span>
+                </div>
+            </div>
+            
+            <!-- Active Friends -->
+            <div class="active-friends widget">
+                <h3>Amici attivi</h3>
+                <div class="friend-list">
+                    <div class="friend-item">
+                        <img src="https://via.placeholder.com/40" alt="">
+                        <div>
+                            <div class="friend-name">Marco_Manga</div>
+                            <div class="friend-status">Sta leggendo Attack on Titan</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="feed-main">
+            <!-- Create Post -->
+            <div class="create-post">
+                <div class="post-creator">
+                    <img src="https://via.placeholder.com/50" class="user-avatar" alt="">
+                    <div class="post-input-container">
+                        <textarea id="postContent" placeholder="Cosa stai leggendo oggi?" rows="3"></textarea>
+                        <div class="post-options">
+                            <button class="post-option" onclick="attachManga()">
+                                <i class="fas fa-book"></i> Manga
+                            </button>
+                            <button class="post-option" onclick="attachImage()">
+                                <i class="fas fa-image"></i> Immagine
+                            </button>
+                            <button class="post-option" onclick="attachPoll()">
+                                <i class="fas fa-poll"></i> Sondaggio
+                            </button>
+                            <button class="post-option" onclick="attachList()">
+                                <i class="fas fa-list"></i> Lista
+                            </button>
+                        </div>
+                        <div class="attached-content" id="attachedContent"></div>
+                        <div class="post-actions">
+                            <select id="postVisibility">
+                                <option value="public">🌍 Pubblico</option>
+                                <option value="friends">👥 Solo amici</option>
+                                <option value="private">🔒 Solo io</option>
+                            </select>
+                            <button class="btn-post" onclick="publishPost()">
+                                <i class="fas fa-paper-plane"></i> Pubblica
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Feed Tabs -->
+            <div class="feed-tabs">
+                <button class="feed-tab active" data-feed="following">Seguiti</button>
+                <button class="feed-tab" data-feed="global">Globale</button>
+                <button class="feed-tab" data-feed="trending">Di Tendenza</button>
+                <button class="feed-tab" data-feed="recommendations">Per Te</button>
+            </div>
+            
+            <!-- Feed Content -->
+            <div class="feed-content" id="feedContent">
+                <!-- Feed items generate dinamicamente -->
+            </div>
+            
+            <div class="load-more">
+                <button class="btn-load-more" onclick="loadMoreFeed()">
+                    <i class="fas fa-sync"></i> Carica altri post
+                </button>
+            </div>
+        </div>
+        
+        <div class="feed-rightbar">
+            <!-- Upcoming Releases -->
+            <div class="upcoming-releases widget">
+                <h3>Prossime uscite</h3>
+                <div class="release-list">
+                    <div class="release-item">
+                        <div class="release-date">
+                            <div class="date-day">15</div>
+                            <div class="date-month">Gen</div>
+                        </div>
+                        <div class="release-info">
+                            <div class="release-title">Chainsaw Man Vol. 14</div>
+                            <div class="release-publisher">Planet Manga</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Suggested Users -->
+            <div class="suggested-users widget">
+                <h3>Utenti consigliati</h3>
+                <div class="user-suggestions">
+                    <div class="suggestion-item">
+                        <img src="https://via.placeholder.com/40" alt="">
+                        <div class="suggestion-info">
+                            <div class="suggestion-name">ShonenExpert</div>
+                            <div class="suggestion-reason">234 manga in comune</div>
+                        </div>
+                        <button class="btn-follow-small">Segui</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Reading Challenge -->
+            <div class="reading-challenge widget">
+                <h3>Sfida di Lettura 2024</h3>
+                <div class="challenge-progress">
+                    <div class="challenge-info">
+                        <span class="current">23</span> / <span class="goal">100</span> manga
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 23%"></div>
+                    </div>
+                    <p class="challenge-status">Sei in anticipo di 3 manga! 🎉</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="feed.js"></script>
+</body>
+</html>

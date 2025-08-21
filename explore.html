@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Esplora - MangaBox</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="explore.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div id="headerContainer"></div>
+    
+    <div class="explore-container">
+        <!-- Advanced Search Section -->
+        <div class="search-section">
+            <h1>Esplora Manga e Fumetti</h1>
+            
+            <div class="advanced-search">
+                <div class="search-main">
+                    <input type="text" id="searchQuery" placeholder="Cerca per titolo, autore o editore...">
+                    <button class="btn-search" onclick="performSearch()">
+                        <i class="fas fa-search"></i> Cerca
+                    </button>
+                </div>
+                
+                <button class="btn-toggle-filters" onclick="toggleFilters()">
+                    <i class="fas fa-filter"></i> Filtri Avanzati
+                </button>
+                
+                <div class="advanced-filters" id="advancedFilters">
+                    <div class="filter-group">
+                        <label>Genere</label>
+                        <div class="genre-tags">
+                            <span class="tag" data-genre="shonen">Shonen</span>
+                            <span class="tag" data-genre="seinen">Seinen</span>
+                            <span class="tag" data-genre="shojo">Shojo</span>
+                            <span class="tag" data-genre="josei">Josei</span>
+                            <span class="tag" data-genre="fantasy">Fantasy</span>
+                            <span class="tag" data-genre="sci-fi">Sci-Fi</span>
+                            <span class="tag" data-genre="horror">Horror</span>
+                            <span class="tag" data-genre="romance">Romance</span>
+                            <span class="tag" data-genre="comedy">Comedy</span>
+                            <span class="tag" data-genre="action">Action</span>
+                            <span class="tag" data-genre="drama">Drama</span>
+                            <span class="tag" data-genre="mystery">Mystery</span>
+                        </div>
+                    </div>
+                    
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <label>Anno</label>
+                            <div class="year-range">
+                                <input type="number" id="yearFrom" placeholder="Da" min="1950" max="2024">
+                                <span>-</span>
+                                <input type="number" id="yearTo" placeholder="A" min="1950" max="2024">
+                            </div>
+                        </div>
+                        
+                        <div class="filter-group">
+                            <label>Stato</label>
+                            <select id="statusFilter">
+                                <option value="">Tutti</option>
+                                <option value="ongoing">In corso</option>
+                                <option value="completed">Completato</option>
+                                <option value="hiatus">In pausa</option>
+                            </select>
+                        </div>
+                        
+                        <div class="filter-group">
+                            <label>Valutazione minima</label>
+                            <select id="ratingFilter">
+                                <option value="">Tutte</option>
+                                <option value="4.5">4.5+ ⭐</option>
+                                <option value="4">4+ ⭐</option>
+                                <option value="3.5">3.5+ ⭐</option>
+                                <option value="3">3+ ⭐</option>
+                            </select>
+                        </div>
+                        
+                        <div class="filter-group">
+                            <label>Tipo</label>
+                            <select id="typeFilter">
+                                <option value="">Tutti</option>
+                                <option value="manga">Manga</option>
+                                <option value="manhwa">Manhwa</option>
+                                <option value="manhua">Manhua</option>
+                                <option value="comic">Fumetto Occidentale</option>
+                                <option value="graphic-novel">Graphic Novel</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="filter-actions">
+                        <button class="btn-apply-filters" onclick="applyFilters()">Applica Filtri</button>
+                        <button class="btn-reset-filters" onclick="resetFilters()">Reset</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Browse Categories -->
+        <div class="browse-section">
+            <h2>Sfoglia per Categoria</h2>
+            <div class="category-cards">
+                <div class="category-card" onclick="browseCategory('trending')">
+                    <i class="fas fa-fire"></i>
+                    <h3>Di Tendenza</h3>
+                    <p>I più popolari del momento</p>
+                </div>
+                <div class="category-card" onclick="browseCategory('new-releases')">
+                    <i class="fas fa-star"></i>
+                    <h3>Nuove Uscite</h3>
+                    <p>Ultimi arrivi</p>
+                </div>
+                <div class="category-card" onclick="browseCategory('classics')">
+                    <i class="fas fa-crown"></i>
+                    <h3>Classici</h3>
+                    <p>I grandi capolavori</p>
+                </div>
+                <div class="category-card" onclick="browseCategory('awards')">
+                    <i class="fas fa-trophy"></i>
+                    <h3>Premiati</h3>
+                    <p>Vincitori di premi</p>
+                </div>
+                <div class="category-card" onclick="browseCategory('hidden-gems')">
+                    <i class="fas fa-gem"></i>
+                    <h3>Gemme Nascoste</h3>
+                    <p>Da scoprire</p>
+                </div>
+                <div class="category-card" onclick="browseCategory('completed')">
+                    <i class="fas fa-check-circle"></i>
+                    <h3>Serie Complete</h3>
+                    <p>Storie concluse</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recommendations -->
+        <div class="recommendations-section">
+            <h2>Consigliati per Te</h2>
+            <p class="section-subtitle">Basato sulle tue letture e preferenze</p>
+            <div class="recommendations-grid" id="recommendationsGrid">
+                <!-- Generated dynamically -->
+            </div>
+        </div>
+        
+        <!-- Search Results -->
+        <div class="search-results" id="searchResults" style="display: none;">
+            <div class="results-header">
+                <h2>Risultati della Ricerca</h2>
+                <div class="results-info">
+                    <span id="resultsCount">0 risultati trovati</span>
+                    <select id="sortResults">
+                        <option value="relevance">Rilevanza</option>
+                        <option value="title">Titolo</option>
+                        <option value="year">Anno</option>
+                        <option value="rating">Valutazione</option>
+                        <option value="popularity">Popolarità</option>
+                    </select>
+                </div>
+            </div>
+            <div class="results-grid" id="resultsGrid">
+                <!-- Results generated dynamically -->
+            </div>
+            <button class="btn-load-more" id="btnLoadMore" onclick="loadMoreResults()">
+                Carica Altri
+            </button>
+        </div>
+        
+        <!-- Top Lists -->
+        <div class="top-lists-section">
+            <h2>Classifiche</h2>
+            <div class="top-lists-container">
+                <div class="top-list">
+                    <h3>🔥 Top 10 Più Letti</h3>
+                    <ol class="ranking-list" id="topReadList">
+                        <!-- Generated dynamically -->
+                    </ol>
+                </div>
+                <div class="top-list">
+                    <h3>⭐ Top 10 Più Votati</h3>
+                    <ol class="ranking-list" id="topRatedList">
+                        <!-- Generated dynamically -->
+                    </ol>
+                </div>
+                <div class="top-list">
+                    <h3>💬 Top 10 Più Discussi</h3>
+                    <ol class="ranking-list" id="topDiscussedList">
+                        <!-- Generated dynamically -->
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="explore.js"></script>
+</body>
+</html>
