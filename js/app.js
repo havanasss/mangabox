@@ -795,12 +795,7 @@ function downloadFile(content, filename, type) {
 // ====================================
 // API CONFIGURATION
 // ====================================
-
-const API_BASE = '/.netlify/functions';
-
-// ====================================
-// API CALLS
-// ====================================
+ 
 
 // ====================================
 // API CONFIGURATION
