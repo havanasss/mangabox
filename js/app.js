@@ -791,4 +791,340 @@ function downloadFile(content, filename, type) {
     URL.revokeObjectURL(url);
 }
 
+
+// ====================================
+// API CONFIGURATION
+// ====================================
+
+const API_BASE = '/.netlify/functions';
+
+// ====================================
+// API CALLS
+// ====================================
+
+async function apiCall(endpoint, options = {}) {
+    const token = localStorage.getItem('token');
+    
+    const defaultOptions = {
+        headers: {
+            'Content-Type': 'application/json',
+            ...(token && { 'Authorization': `Bearer ${token}` })
+        }
+    };
+    
+    try {
+        const response = await fetch(`${API_BASE}/${endpoint}`, {
+            ...defaultOptions,
+            ...options
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(data.error || 'API call failed');
+        }
+        
+        return data;
+    } catch (error) {
+        console.error('API Error:', error);
+        throw error;
+    }
+}
+
+// ====================================
+// AUTHENTICATION WITH DATABASE
+// ====================================
+
+async function handleLogin(e) {
+    e.preventDefault();
+    
+    const email = e.target[0].value;
+    const password = e.target[1].value;
+    
+    try {
+        const response = await apiCall('user-auth', {
+            method: 'POST',
+            body: JSON.stringify({
+                action: 'login',
+                email,
+                password
+            })
+        });
+        
+        if (response.success) {
+            localStorage.setItem('token', response.token);
+            userData.isLoggedIn = true;
+            userData.username = response.user.username;
+            userData.userId = response.user.id;
+            userData.email = response.user.email;
+            
+            updateUIAfterLogin();
+            saveUserData();
+            closeLoginModal();
+            
+            // Load user collection from database
+            await loadUserCollection();
+        }
+    } catch (error) {
+        showNotification('Login fallito: ' + error.message, 'error');
+    }
+}
+
+async function handleSignup(e) {
+    e.preventDefault();
+    
+    const username = e.target[0].value;
+    const email = e.target[1].value;
+    const password = e.target[2].value;
+    
+    try {
+        const response = await apiCall('user-auth', {
+            method: 'POST',
+            body: JSON.stringify({
+                action: 'register',
+                username,
+                email,
+                password
+            })
+        });
+        
+        if (response.success) {
+            localStorage.setItem('token', response.token);
+            userData.isLoggedIn = true;
+            userData.username = response.user.username;
+            userData.userId = response.user.id;
+            userData.email = response.user.email;
+            
+            updateUIAfterLogin();
+            saveUserData();
+            closeSignupModal();
+            showNotification('Registrazione completata!', 'success');
+        }
+    } catch (error) {
+        showNotification('Registrazione fallita: ' + error.message, 'error');
+    }
+}
+
+// ====================================
+// LOAD DATA FROM DATABASE
+// ====================================
+
+async function loadMangaFromDB() {
+    try {
+        const response = await apiCall('manga-get');
+        
+        if (response.success && response.data) {
+            // Update mangaDatabase with real data
+            mangaDatabase.length = 0;
+            mangaDatabase.push(...response.data);
+            
+            // Reload UI
+            loadMangaGrid();
+        }
+    } catch (error) {
+        console.error('Failed to load manga:', error);
+        // Use local data as fallback
+    }
+}
+
+async function loadUserCollection() {
+    if (!userData.isLoggedIn) return;
+    
+    try {
+        const response = await apiCall('collection-manage');
+        
+        if (response.success) {
+            userData.userCollection = response.collection;
+            userData.economicData = response.economicData;
+            
+            // Update UI
+            updateDashboard();
+            if (document.getElementById('collectionGrid')) {
+                loadCollectionGrid('all');
+            }
+        }
+    } catch (error) {
+        console.error('Failed to load collection:', error);
+    }
+}
+
+// ====================================
+// ADD MANGA TO COLLECTION (DATABASE)
+// ====================================
+
+async function addMangaToDB() {
+    const formData = collectFormData();
+    
+    if (!validateFormData(formData)) {
+        return;
+    }
+    
+    try {
+        const response = await apiCall('collection-manage', {
+            method: 'POST',
+            body: JSON.stringify({
+                ...formData,
+                owned_volumes: formData.ownedVolumes,
+                total_volumes: formData.totalVolumes,
+                cover_price: formData.coverPrice,
+                paid_price: formData.paidPrice,
+                purchase_notes: formData.purchaseNotes
+            })
+        });
+        
+        if (response.success) {
+            showNotification('Opera aggiunta alla collezione!', 'success');
+            document.getElementById('addMangaForm').reset();
+            closeAddMangaModal();
+            
+            // Reload collection
+            await loadUserCollection();
+        }
+    } catch (error) {
+        showNotification('Errore: ' + error.message, 'error');
+    }
+}
+
+// ====================================
+// SEARCH MANGA IN DATABASE
+// ====================================
+
+async function searchMangaInDB(query) {
+    if (query.length < 2) {
+        await loadMangaFromDB();
+        return;
+    }
+    
+    try {
+        const response = await apiCall(`manga-get?search=${encodeURIComponent(query)}`);
+        
+        if (response.success && response.data) {
+            const popularGrid = document.getElementById('popularGrid');
+            if (response.data.length > 0) {
+                popularGrid.innerHTML = response.data.map(manga => createMangaCard(manga)).join('');
+            } else {
+                popularGrid.innerHTML = '<p>Nessun risultato trovato</p>';
+            }
+        }
+    } catch (error) {
+        console.error('Search failed:', error);
+    }
+}
+
+// ====================================
+// UPDATE INITIALIZATION
+// ====================================
+
+document.addEventListener('DOMContentLoaded', async function() {
+    // Check for saved token
+    const token = localStorage.getItem('token');
+    if (token) {
+        // Verify token is still valid by loading user data
+        try {
+            await loadUserCollection();
+        } catch (error) {
+            // Token expired or invalid
+            localStorage.removeItem('token');
+            userData.isLoggedIn = false;
+        }
+    }
+    
+    // Initialize economics manager
+    economicsManager = new CollectionEconomicsManager();
+    
+    // Load user data from localStorage
+    loadUserData();
+    
+    // Load manga from database
+    await loadMangaFromDB();
+    
+    // Load activity feed
+    loadActivityFeed();
+    
+    // Setup event listeners
+    setupEventListeners();
+    
+    // Update search to use database
+    document.getElementById('searchInput')?.addEventListener('input', function(e) {
+        searchMangaInDB(e.target.value);
+    });
+    
+    // Update form submission to use database
+    document.getElementById('addMangaForm')?.addEventListener('submit', function(e) {
+        e.preventDefault();
+        addMangaToDB();
+    });
+    
+    // Show FAB if logged in
+    if (userData.isLoggedIn) {
+        document.querySelector('.fab-add-manga').style.display = 'block';
+    }
+});
+
+// Update the existing functions to use DB
+function collectFormData() {
+    return {
+        title: document.getElementById('mangaTitle').value,
+        original_title: document.getElementById('mangaOriginalTitle').value,
+        author: document.getElementById('mangaAuthor').value,
+        artist: document.getElementById('mangaArtist').value,
+        publisher: document.getElementById('mangaPublisher').value,
+        year: parseInt(document.getElementById('mangaYear').value) || null,
+        type: document.getElementById('mangaType').value,
+        genres: document.getElementById('mangaGenres').value.split(',').map(g => g.trim()),
+        description: document.getElementById('mangaDescription').value,
+        totalVolumes: parseInt(document.getElementById('mangaTotalVolumes').value) || 0,
+        ownedVolumes: parseInt(document.getElementById('mangaOwnedVolumes').value) || 0,
+        volumes_list: document.getElementById('mangaVolumesList').value,
+        collection_status: document.getElementById('collectionStatus').value,
+        condition: document.getElementById('mangaCondition').value,
+        coverPrice: parseFloat(document.getElementById('mangaCoverPrice').value) || 0,
+        paidPrice: parseFloat(document.getElementById('mangaPaidPrice').value) || 0,
+        purchaseNotes: document.getElementById('purchaseNotesDetail').value,
+        cover_url: `https://via.placeholder.com/150x220/FF6B6B/FFFFFF?text=${encodeURIComponent(document.getElementById('mangaTitle').value.substring(0, 10))}`
+    };
+}
+
+function validateFormData(data) {
+    if (!data.title) {
+        showNotification('Il titolo è obbligatorio', 'error');
+        return false;
+    }
+    
+    if (!data.author) {
+        showNotification('L\'autore è obbligatorio', 'error');
+        return false;
+    }
+    
+    if (!data.publisher) {
+        showNotification('L\'editore è obbligatorio', 'error');
+        return false;
+    }
+    
+    if (data.ownedVolumes > data.totalVolumes && data.totalVolumes > 0) {
+        showNotification('I volumi posseduti non possono superare il totale', 'error');
+        return false;
+    }
+    
+    return true;
+}
+
+// Update dashboard with real data
+function updateDashboard() {
+    const totalOwnedEl = document.getElementById('totalOwned');
+    const totalVolumesEl = document.getElementById('totalVolumesCount');
+    const collectionValueEl = document.getElementById('collectionValue');
+    const totalSpentEl = document.getElementById('totalSpent');
+    
+    if (userData.economicData) {
+        if (totalOwnedEl) totalOwnedEl.textContent = userData.userCollection?.length || 0;
+        if (totalVolumesEl) totalVolumesEl.textContent = userData.economicData.total_volumes || 0;
+        if (collectionValueEl) collectionValueEl.textContent = parseFloat(userData.economicData.total_cover_value || 0).toFixed(2);
+        if (totalSpentEl) totalSpentEl.textContent = parseFloat(userData.economicData.total_paid_value || 0).toFixed(2);
+    }
+}
+ 
+
+
+
 console.log('MangaBox App Loaded Successfully! 🚀');
