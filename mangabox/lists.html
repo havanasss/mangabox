@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Liste - MangaBox</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="lists.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div id="headerContainer"></div>
+    
+    <div class="lists-container">
+        <div class="lists-header">
+            <h1>Le Mie Liste</h1>
+            <button class="btn-create" onclick="showCreateListModal()">
+                <i class="fas fa-plus"></i> Crea Nuova Lista
+            </button>
+        </div>
+        
+        <!-- Lists Grid -->
+        <div class="my-lists-section">
+            <div class="lists-grid" id="myListsGrid">
+                <!-- User's lists -->
+            </div>
+        </div>
+        
+        <!-- Popular Lists -->
+        <div class="popular-lists-section">
+            <h2>Liste Popolari della Community</h2>
+            <div class="lists-grid" id="popularListsGrid">
+                <!-- Popular lists -->
+            </div>
+        </div>
+        
+        <!-- Following Lists -->
+        <div class="following-lists-section">
+            <h2>Liste degli Utenti che Segui</h2>
+            <div class="lists-grid" id="followingListsGrid">
+                <!-- Lists from followed users -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- Create List Modal -->
+    <div id="createListModal" class="modal">
+        <div class="modal-content list-modal">
+            <span class="close" onclick="closeCreateListModal()">&times;</span>
+            <h2>Crea Nuova Lista</h2>
+            
+            <form id="createListForm">
+                <div class="form-group">
+                    <label>Nome Lista</label>
+                    <input type="text" id="listName" required placeholder="Es: I miei manga preferiti">
+                </div>
+                
+                <div class="form-group">
+                    <label>Descrizione</label>
+                    <textarea id="listDescription" rows="4" placeholder="Descrivi la tua lista..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>Tipo Lista</label>
+                    <select id="listType">
+                        <option value="custom">Personalizzata</option>
+                        <option value="ranked">Classifica</option>
+                        <option value="themed">Tematica</option>
+                        <option value="recommendation">Consigli</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Privacy</label>
+                    <div class="privacy-options">
+                        <label class="radio-option">
+                            <input type="radio" name="privacy" value="public" checked>
+                            <span>Pubblica</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="privacy" value="friends">
+                            <span>Solo Amici</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="privacy" value="private">
+                            <span>Privata</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Tags (separati da virgola)</label>
+                    <input type="text" id="listTags" placeholder="Es: shonen, avventura, classici">
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit" class="btn-save">Crea Lista</button>
+                    <button type="button" class="btn-cancel" onclick="closeCreateListModal()">Annulla</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- List Detail Modal -->
+    <div id="listDetailModal" class="modal">
+        <div class="modal-content list-detail-modal">
+            <span class="close" onclick="closeListDetailModal()">&times;</span>
+            
+            <div class="list-detail-header">
+                <h2 id="detailListName"></h2>
+                <p id="detailListDescription"></p>
+                <div class="list-meta">
+                    <span class="list-author">
+                        <i class="fas fa-user"></i> <span id="detailListAuthor"></span>
+                    </span>
+                    <span class="list-date">
+                        <i class="fas fa-calendar"></i> <span id="detailListDate"></span>
+                    </span>
+                    <span class="list-likes">
+                        <i class="fas fa-heart"></i> <span id="detailListLikes">0</span>
+                    </span>
+                </div>
+                
+                <div class="list-actions">
+                    <button class="btn-like" onclick="likeList()">
+                        <i class="far fa-heart"></i> Mi Piace
+                    </button>
+                    <button class="btn-clone" onclick="cloneList()">
+                        <i class="fas fa-copy"></i> Clona Lista
+                    </button>
+                    <button class="btn-share" onclick="shareList()">
+                        <i class="fas fa-share"></i> Condividi
+                    </button>
+                    <button class="btn-edit" id="btnEditList" onclick="editList()">
+                        <i class="fas fa-edit"></i> Modifica
+                    </button>
+                </div>
+            </div>
+            
+            <div class="list-detail-content">
+                <div class="list-items" id="listDetailItems">
+                    <!-- List items -->
+                </div>
+                
+                <div class="add-item-section" id="addItemSection" style="display: none;">
+                    <h3>Aggiungi Manga alla Lista</h3>
+                    <div class="search-add">
+                        <input type="text" id="searchMangaToAdd" placeholder="Cerca manga da aggiungere...">
+                        <div class="search-results-dropdown" id="searchResultsDropdown">
+                            <!-- Search results -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="lists.js"></script>
+</body>
+</html>

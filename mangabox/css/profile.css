@@ -1,0 +1,268 @@
+.profile-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0;
+}
+
+.profile-header {
+    position: relative;
+    background-color: var(--light-bg);
+    border-radius: 0 0 20px 20px;
+    margin-bottom: 2rem;
+}
+
+.profile-cover {
+    height: 300px;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    position: relative;
+    border-radius: 0 0 20px 20px;
+}
+
+.btn-change-cover {
+    position: absolute;
+    bottom: 1rem;
+    right: 1rem;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    cursor: pointer;
+}
+
+.profile-info-section {
+    display: flex;
+    padding: 0 2rem 2rem;
+    margin-top: -50px;
+    position: relative;
+}
+
+.profile-avatar-container {
+    position: relative;
+}
+
+.profile-avatar {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    border: 5px solid var(--dark-bg);
+}
+
+.btn-change-avatar {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.profile-details {
+    flex: 1;
+    margin-left: 2rem;
+}
+
+.profile-details h1 {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.profile-bio {
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+}
+
+.profile-stats {
+    display: flex;
+    gap: 2rem;
+    margin: 1.5rem 0;
+}
+
+.profile-stats .stat {
+    text-align: center;
+}
+
+.stat-value {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+.stat-label {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.profile-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.profile-actions button {
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-follow {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.btn-message {
+    background-color: var(--secondary-color);
+    color: white;
+}
+
+.btn-edit-profile {
+    background-color: transparent;
+    color: var(--text-primary);
+    border: 1px solid var(--border-color) !important;
+}
+
+/* Profile Tabs */
+.profile-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 2rem;
+    padding: 0 2rem;
+}
+
+.tab-btn {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    padding: 1rem 1.5rem;
+    cursor: pointer;
+    position: relative;
+    transition: color 0.3s;
+}
+
+.tab-btn:hover {
+    color: var(--text-primary);
+}
+
+.tab-btn.active {
+    color: var(--primary-color);
+}
+
+.tab-btn.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background-color: var(--primary-color);
+}
+
+.tab-content {
+    padding: 0 2rem;
+}
+
+.tab-pane {
+    display: none;
+}
+
+.tab-pane.active {
+    display: block;
+}
+
+/* Activity Timeline */
+.activity-timeline {
+    position: relative;
+    padding-left: 2rem;
+}
+
+.activity-timeline::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background-color: var(--border-color);
+}
+
+.timeline-item {
+    position: relative;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    background-color: var(--light-bg);
+    border-radius: 8px;
+}
+
+.timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -2.5rem;
+    top: 1.5rem;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: var(--primary-color);
+}
+
+/* Stats Container */
+.stats-overview {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background-color: var(--light-bg);
+    padding: 1.5rem;
+    border-radius: 10px;
+    text-align: center;
+}
+
+.stat-card i {
+    font-size: 2rem;
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+}
+
+.stat-big {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+.reading-chart {
+    background-color: var(--light-bg);
+    padding: 1.5rem;
+    border-radius: 10px;
+    margin-bottom: 2rem;
+}
+
+.genre-distribution {
+    background-color: var(--light-bg);
+    padding: 1.5rem;
+    border-radius: 10px;
+    margin-bottom: 2rem;
+}
+
+.reading-goals {
+    background-color: var(--light-bg);
+    padding: 1.5rem;
+    border-radius: 10px;
+}
+
+.goal-progress {
+    margin-top: 1rem;
+}
+
+.favorites-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 1rem;
+}
