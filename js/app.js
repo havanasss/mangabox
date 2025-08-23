@@ -1,5 +1,5 @@
 // ====================================
-// MANGABOX - COMPLETE APPLICATION
+// MANGABOX - COMPLETE APPLICATION WITH REAL DB
 // ====================================
 
 // API Configuration
@@ -22,10 +22,12 @@ let userData = {
     }
 };
 
+
 let currentMangaId = null;
 let allManga = [];
 let userLists = [];
 let userReviews = [];
+let userStats = {};
 
 // ====================================
 // INITIALIZATION
@@ -74,8 +76,750 @@ document.addEventListener('DOMContentLoaded', async function() {
 });
 
 // ====================================
-// API FUNCTIONS
+// API CALLS WITH REAL ERROR HANDLING
 // ====================================
+
+async function apiCall(endpoint, options = {}) {
+    const token = localStorage.getItem('token');
+    
+    const headers = {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` }),
+        ...(options.headers || {})
+    };
+    
+    const fetchOptions = {
+        ...options,
+        headers: headers
+    };
+    
+    if (fetchOptions.body && typeof fetchOptions.body !== 'string') {
+        fetchOptions.body = JSON.stringify(fetchOptions.body);
+    }
+    
+    const url = `${API_BASE}/${endpoint}`;
+    console.log('API Call:', url, fetchOptions.method || 'GET');
+    
+    try {
+        const response = await fetch(url, fetchOptions);
+        
+        let data;
+        const contentType = response.headers.get('content-type');
+        
+        if (contentType && contentType.includes('application/json')) {
+            data = await response.json();
+        } else {
+            const text = await response.text();
+            try {
+                data = JSON.parse(text);
+            } catch {
+                data = { error: text || 'Unknown error' };
+            }
+        }
+        
+        console.log('API Response:', data);
+        
+        if (!response.ok) {
+            throw new Error(data.error || `HTTP ${response.status}`);
+        }
+        
+        return data;
+        
+    } catch (error) {
+        console.error('API Error:', error);
+        throw error;
+    }
+}
+
+// ====================================
+// PROFILE PAGE WITH REAL DATA
+// ====================================
+
+async function initProfilePage() {
+    console.log('Initializing profile page with real data...');
+    
+    if (!userData.isLoggedIn) {
+        window.location.href = 'index.html';
+        return;
+    }
+    
+    try {
+        // Load user collection from DB
+        const collectionResponse = await apiCall('collection-manage', {
+            method: 'GET'
+        });
+        
+        if (collectionResponse.success) {
+            userData.userCollection = collectionResponse.collection || [];
+            userData.economicData = collectionResponse.economicData || {};
+            
+            // Update profile stats with real data
+            updateProfileStats();
+        }
+        
+        // Load user reviews from DB
+        const reviewsResponse = await apiCall('reviews-manage', {
+            method: 'GET'
+        });
+        
+        if (reviewsResponse.success) {
+            userReviews = reviewsResponse.reviews || [];
+            document.getElementById('totalReviews').textContent = userReviews.length;
+        }
+        
+        // Load user lists from DB
+        const listsResponse = await apiCall('lists-manage', {
+            method: 'GET'
+        });
+        
+        if (listsResponse.success) {
+            userLists = listsResponse.lists || [];
+            document.getElementById('totalLists').textContent = userLists.length;
+        }
+        
+        // Update all profile UI elements
+        updateProfileUIWithRealData();
+        
+    } catch (error) {
+        console.error('Failed to load profile data:', error);
+        // Use localStorage as fallback
+        loadProfileFromLocalStorage();
+    }
+}
+
+function updateProfileStats() {
+    // Calculate real stats from collection
+    const stats = {
+        totalVolumes: 0,
+        totalCoverValue: 0,
+        totalPaidValue: 0,
+        totalSavings: 0,
+        savingsPercentage: 0,
+        totalSeries: userData.userCollection.length,
+        completedSeries: 0,
+        readingNow: 0
+    };
+    
+    userData.userCollection.forEach(item => {
+        stats.totalVolumes += parseInt(item.owned_volumes) || 0;
+        const coverValue = (item.owned_volumes || 0) * (item.cover_price || 0);
+        const paidValue = (item.owned_volumes || 0) * (item.paid_price || 0);
+        stats.totalCoverValue += coverValue;
+        stats.totalPaidValue += paidValue;
+        
+        if (item.collection_status === 'complete') {
+            stats.completedSeries++;
+        } else if (item.collection_status === 'collecting') {
+            stats.readingNow++;
+        }
+    });
+    
+    stats.totalSavings = stats.totalCoverValue - stats.totalPaidValue;
+    stats.savingsPercentage = stats.totalCoverValue > 0 
+        ? ((stats.totalSavings / stats.totalCoverValue) * 100).toFixed(2)
+        : 0;
+    
+    // Update profile page elements
+    const updates = {
+        'totalVolumesOwned': stats.totalVolumes,
+        'totalCoverValue': '€' + stats.totalCoverValue.toFixed(2),
+        'totalPaidValue': '€' + stats.totalPaidValue.toFixed(2),
+        'totalSavings': '€' + stats.totalSavings.toFixed(2) + ' (' + stats.savingsPercentage + '%)',
+        'totalSeries': stats.totalSeries,
+        'completedSeries': stats.completedSeries,
+        'readingNow': stats.readingNow
+    };
+    
+    for (const [id, value] of Object.entries(updates)) {
+        const elements = document.querySelectorAll(`#${id}, .${id}`);
+        elements.forEach(el => {
+            if (el) {
+                if (el.tagName === 'INPUT') {
+                    el.value = value;
+                } else {
+                    el.textContent = value;
+                }
+            }
+        });
+    }
+    
+    return stats;
+}
+
+function updateProfileUIWithRealData() {
+    // Update username everywhere
+    document.querySelectorAll('h1, .profile-username').forEach(el => {
+        if (el.textContent.includes('Profilo') || el.textContent === 'Il Mio Profilo') {
+            el.textContent = userData.username;
+        }
+    });
+    
+    // Update bio if exists
+    const bioEl = document.querySelector('.profile-bio');
+    if (bioEl) {
+        bioEl.textContent = userData.bio || 'Appassionato di manga e fumetti';
+    }
+    
+    // Update economic overview cards with real data
+    const overviewHTML = `
+        <div class="stat-card">
+            <div class="stat-number">${userData.economicData.totalVolumes || 0}</div>
+            <div class="stat-label">Volumi Totali</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">€${(userData.economicData.totalCoverValue || 0).toFixed(2)}</div>
+            <div class="stat-label">Valore Collezione</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">€${(userData.economicData.totalPaidValue || 0).toFixed(2)}</div>
+            <div class="stat-label">Totale Speso</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">€${(userData.economicData.totalSavings || 0).toFixed(2)}</div>
+            <div class="stat-label">Risparmiato (${userData.economicData.savingsPercentage || 0}%)</div>
+        </div>
+    `;
+    
+    const overviewContainer = document.querySelector('.economics-overview');
+    if (overviewContainer) {
+        overviewContainer.innerHTML = overviewHTML;
+    }
+    
+    // Load recent activity from collection
+    displayRecentActivity();
+}
+
+function displayRecentActivity() {
+    const activityContainer = document.querySelector('.activity-timeline, .recent-activity');
+    if (!activityContainer) return;
+    
+    const activities = [];
+    
+    // Generate activities from collection
+    userData.userCollection.slice(0, 5).forEach(item => {
+        activities.push({
+            type: 'added',
+            title: item.title,
+            date: item.created_at || new Date().toISOString(),
+            details: `${item.owned_volumes} volumi`
+        });
+    });
+    
+    // Add reviews
+    userReviews.slice(0, 3).forEach(review => {
+        activities.push({
+            type: 'reviewed',
+            title: review.manga_title || 'Un manga',
+            date: review.created_at,
+            details: `Valutazione: ${'⭐'.repeat(review.rating)}`
+        });
+    });
+    
+    // Sort by date
+    activities.sort((a, b) => new Date(b.date) - new Date(a.date));
+    
+    activityContainer.innerHTML = activities.slice(0, 10).map(activity => `
+        <div style="padding: 1rem; border-bottom: 1px solid #2C3440;">
+            <p>Hai ${activity.type === 'added' ? 'aggiunto' : 'recensito'} <strong>${activity.title}</strong></p>
+            <small style="color: #9AB;">${activity.details} - ${formatDate(activity.date)}</small>
+        </div>
+    `).join('');
+}
+
+// ====================================
+// REVIEWS PAGE WITH REAL DB
+// ====================================
+
+async function initReviewsPage() {
+    console.log('Initializing reviews page...');
+    
+    if (!userData.isLoggedIn) {
+        showNotification('Devi effettuare il login per vedere le recensioni', 'warning');
+        return;
+    }
+    
+    try {
+        // Load user reviews from DB
+        const response = await apiCall('reviews-manage', {
+            method: 'GET'
+        });
+        
+        if (response.success) {
+            userReviews = response.reviews || [];
+            displayUserReviews();
+        }
+    } catch (error) {
+        console.error('Failed to load reviews:', error);
+        // Fallback to localStorage
+        const saved = localStorage.getItem('userReviews');
+        if (saved) {
+            userReviews = JSON.parse(saved);
+            displayUserReviews();
+        }
+    }
+    
+    // Setup review form
+    setupReviewForm();
+}
+
+function setupReviewForm() {
+    const form = document.getElementById('reviewForm');
+    if (!form) return;
+    
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        await submitReview();
+    });
+    
+    // Setup star rating
+    document.querySelectorAll('.star-rating i').forEach((star, index) => {
+        star.addEventListener('click', () => {
+            const rating = index + 1;
+            updateStarRating(rating);
+        });
+    });
+}
+
+async function submitReview() {
+    const reviewData = {
+        manga_id: currentMangaId || 1, // Need to select manga first
+        title: document.getElementById('reviewTitle')?.value || '',
+        content: document.getElementById('reviewContent')?.value || '',
+        rating: getCurrentRating(),
+        contains_spoilers: document.getElementById('containsSpoilers')?.checked || false
+    };
+    
+    if (!reviewData.content) {
+        showNotification('Scrivi una recensione prima di pubblicare', 'warning');
+        return;
+    }
+    
+    try {
+        const response = await apiCall('reviews-manage', {
+            method: 'POST',
+            body: reviewData
+        });
+        
+        if (response.success) {
+            showNotification('Recensione pubblicata!', 'success');
+            document.getElementById('reviewForm').reset();
+            
+            // Reload reviews
+            await initReviewsPage();
+        }
+    } catch (error) {
+        console.error('Failed to submit review:', error);
+        
+        // Fallback to localStorage
+        const reviews = JSON.parse(localStorage.getItem('userReviews') || '[]');
+        reviews.push({
+            ...reviewData,
+            id: Date.now(),
+            created_at: new Date().toISOString(),
+            username: userData.username
+        });
+        localStorage.setItem('userReviews', JSON.stringify(reviews));
+        
+        showNotification('Recensione salvata localmente!', 'success');
+        userReviews = reviews;
+        displayUserReviews();
+    }
+}
+
+function displayUserReviews() {
+    const container = document.querySelector('.reviews-list, #userReviewsList');
+    if (!container) return;
+    
+    if (userReviews.length === 0) {
+        container.innerHTML = '<p style="padding: 2rem; text-align: center;">Non hai ancora scritto recensioni</p>';
+        return;
+    }
+    
+    container.innerHTML = userReviews.map(review => `
+        <div style="background: #1C2128; padding: 1.5rem; border-radius: 10px; margin-bottom: 1rem;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
+                <h3>${review.manga_title || review.title || 'Recensione'}</h3>
+                <div style="color: #FFD700;">${'⭐'.repeat(review.rating || 5)}</div>
+            </div>
+            ${review.contains_spoilers ? '<div style="background: #dc3545; color: white; padding: 0.5rem; border-radius: 4px; margin-bottom: 1rem;">⚠️ Contiene Spoiler</div>' : ''}
+            <p style="line-height: 1.6;">${review.content}</p>
+            <small style="color: #9AB;">Pubblicata il ${formatDate(review.created_at)}</small>
+        </div>
+    `).join('');
+}
+
+// ====================================
+// LISTS PAGE WITH REAL DB
+// ====================================
+
+async function initListsPage() {
+    console.log('Initializing lists page...');
+    
+    if (!userData.isLoggedIn) {
+        showNotification('Devi effettuare il login per vedere le liste', 'warning');
+        return;
+    }
+    
+    try {
+        // Load user lists from DB
+        const response = await apiCall('lists-manage', {
+            method: 'GET'
+        });
+        
+        if (response.success) {
+            userLists = response.lists || [];
+            displayUserLists();
+        }
+    } catch (error) {
+        console.error('Failed to load lists:', error);
+        // Fallback to localStorage
+        const saved = localStorage.getItem('userLists');
+        if (saved) {
+            userLists = JSON.parse(saved);
+            displayUserLists();
+        }
+    }
+    
+    // Setup create list button
+    setupCreateListForm();
+}
+
+function setupCreateListForm() {
+    const createBtn = document.querySelector('.btn-create');
+    if (createBtn) {
+        createBtn.addEventListener('click', showCreateListModal);
+    }
+}
+
+function showCreateListModal() {
+    const modal = document.getElementById('createListModal');
+    if (modal) {
+        modal.style.display = 'block';
+    } else {
+        // Create modal dynamically
+        const modalHTML = `
+            <div id="createListModal" class="modal" style="display: block;">
+                <div class="modal-content">
+                    <span class="close" onclick="closeCreateListModal()">&times;</span>
+                    <h2>Crea Nuova Lista</h2>
+                    <form id="createListForm">
+                        <div class="form-group">
+                            <label>Nome Lista</label>
+                            <input type="text" id="listName" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Descrizione</label>
+                            <textarea id="listDescription"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="listPublic" checked>
+                                Lista Pubblica
+                            </label>
+                        </div>
+                        <button type="submit" class="btn-primary">Crea Lista</button>
+                    </form>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        
+        document.getElementById('createListForm').addEventListener('submit', createNewList);
+    }
+}
+
+async function createNewList(e) {
+    e.preventDefault();
+    
+    const listData = {
+        name: document.getElementById('listName').value,
+        description: document.getElementById('listDescription').value,
+        is_public: document.getElementById('listPublic').checked
+    };
+    
+    try {
+        const response = await apiCall('lists-manage', {
+            method: 'POST',
+            body: listData
+        });
+        
+        if (response.success) {
+            showNotification('Lista creata!', 'success');
+            closeCreateListModal();
+            await initListsPage(); // Reload lists
+        }
+    } catch (error) {
+        console.error('Failed to create list:', error);
+        
+        // Fallback to localStorage
+        const lists = JSON.parse(localStorage.getItem('userLists') || '[]');
+        lists.push({
+            ...listData,
+            id: Date.now(),
+            created_at: new Date().toISOString(),
+            item_count: 0
+        });
+        localStorage.setItem('userLists', JSON.stringify(lists));
+        
+        showNotification('Lista salvata localmente!', 'success');
+        closeCreateListModal();
+        userLists = lists;
+        displayUserLists();
+    }
+}
+
+function closeCreateListModal() {
+    const modal = document.getElementById('createListModal');
+    if (modal) modal.style.display = 'none';
+}
+
+function displayUserLists() {
+    const container = document.querySelector('.lists-grid, #myListsGrid');
+    if (!container) return;
+    
+    if (userLists.length === 0) {
+        container.innerHTML = `
+            <div style="grid-column: 1/-1; text-align: center; padding: 3rem;">
+                <p>Non hai ancora creato nessuna lista</p>
+                <button class="btn-primary" onclick="showCreateListModal()" style="margin-top: 1rem;">
+                    <i class="fas fa-plus"></i> Crea la tua prima lista
+                </button>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = userLists.map(list => `
+        <div style="background: #1C2128; border-radius: 10px; overflow: hidden; cursor: pointer;">
+            <div style="height: 150px; background: linear-gradient(135deg, ${getRandomGradient()});"></div>
+            <div style="padding: 1rem;">
+                <h3>${list.name}</h3>
+                <p style="color: #9AB;">${list.description || 'Nessuna descrizione'}</p>
+                <div style="display: flex; gap: 1rem; margin-top: 1rem; color: #9AB; font-size: 0.9rem;">
+                    <span><i class="fas fa-book"></i> ${list.item_count || 0} manga</span>
+                    <span><i class="fas ${list.is_public ? 'fa-globe' : 'fa-lock'}"></i> ${list.is_public ? 'Pubblica' : 'Privata'}</span>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+// ====================================
+// COLLECTION MANAGEMENT WITH REAL DB
+// ====================================
+
+async function addMangaToCollection() {
+    const formData = collectFormData();
+    
+    if (!validateFormData(formData)) {
+        return;
+    }
+    
+    try {
+        const response = await apiCall('collection-manage', {
+            method: 'POST',
+            body: formData
+        });
+        
+        if (response.success) {
+            showNotification('Manga aggiunto alla collezione!', 'success');
+            document.getElementById('addMangaForm').reset();
+            closeAddMangaModal();
+            
+            // Reload collection
+            await loadUserCollection();
+            
+            // Update UI if on library or profile page
+            if (window.location.pathname.includes('profile')) {
+                await initProfilePage();
+            }
+        }
+    } catch (error) {
+        console.error('Failed to add manga:', error);
+        
+        // Fallback to localStorage
+        const collection = JSON.parse(localStorage.getItem('userMangaCollection') || '[]');
+        collection.push({
+            ...formData,
+            id: Date.now(),
+            created_at: new Date().toISOString()
+        });
+        localStorage.setItem('userMangaCollection', JSON.stringify(collection));
+        
+        showNotification('Manga salvato localmente!', 'success');
+        document.getElementById('addMangaForm').reset();
+        closeAddMangaModal();
+        
+        userData.userCollection = collection;
+        updateCollectionUI();
+    }
+}
+
+async function loadUserCollection() {
+    if (!userData.isLoggedIn) return;
+    
+    try {
+        const response = await apiCall('collection-manage', {
+            method: 'GET'
+        });
+        
+        if (response.success) {
+            userData.userCollection = response.collection || [];
+            userData.economicData = response.economicData || {};
+            
+            console.log('Collection loaded:', userData.userCollection.length, 'items');
+            updateCollectionUI();
+        }
+    } catch (error) {
+        console.error('Failed to load collection:', error);
+        
+        // Fallback to localStorage
+        const saved = localStorage.getItem('userMangaCollection');
+        if (saved) {
+            userData.userCollection = JSON.parse(saved);
+            calculateEconomicData();
+            updateCollectionUI();
+        }
+    }
+}
+
+function calculateEconomicData() {
+    const data = {
+        totalVolumes: 0,
+        totalCoverValue: 0,
+        totalPaidValue: 0
+    };
+    
+    userData.userCollection.forEach(item => {
+        data.totalVolumes += item.owned_volumes || 0;
+        data.totalCoverValue += (item.owned_volumes || 0) * (item.cover_price || 0);
+        data.totalPaidValue += (item.owned_volumes || 0) * (item.paid_price || 0);
+    });
+    
+    data.totalSavings = data.totalCoverValue - data.totalPaidValue;
+    data.savingsPercentage = data.totalCoverValue > 0 
+        ? ((data.totalSavings / data.totalCoverValue) * 100).toFixed(2)
+        : 0;
+    
+    userData.economicData = data;
+}
+
+function updateCollectionUI() {
+    // Update stats
+    const stats = userData.economicData;
+    
+    updateElementText('totalOwned', userData.userCollection?.length || 0);
+    updateElementText('totalVolumesCount', stats.totalVolumes || 0);
+    updateElementText('collectionValue', (stats.totalCoverValue || 0).toFixed(2));
+    updateElementText('totalSpent', (stats.totalPaidValue || 0).toFixed(2));
+    
+    // Display collection grid
+    const grid = document.getElementById('collectionGrid');
+    if (grid) {
+        displayCollectionGrid();
+    }
+}
+
+function displayCollectionGrid() {
+    const grid = document.getElementById('collectionGrid');
+    if (!grid) return;
+    
+    if (userData.userCollection.length === 0) {
+        grid.innerHTML = `
+            <div style="grid-column: 1/-1; text-align: center; padding: 3rem;">
+                <p>La tua collezione è vuota</p>
+                <button class="btn-primary" onclick="openAddMangaModal()" style="margin-top: 1rem;">
+                    <i class="fas fa-plus"></i> Aggiungi il tuo primo manga
+                </button>
+            </div>
+        `;
+        return;
+    }
+    
+    grid.innerHTML = userData.userCollection.map(item => `
+        <div class="collection-card">
+            <img src="${item.cover_url || 'https://via.placeholder.com/150x220'}" alt="${item.title}">
+            <div class="collection-info">
+                <div class="collection-title">${item.title}</div>
+                <div class="collection-meta">${item.author} • ${item.year || 'N/A'}</div>
+                <div class="collection-volumes">
+                    Volumi: ${item.owned_volumes}/${item.volumes_total || item.total_volumes || '?'}
+                </div>
+                <div class="collection-value">
+                    Valore: €${((item.owned_volumes || 0) * (item.cover_price || 0)).toFixed(2)}
+                </div>
+                <div class="collection-spent">
+                    Speso: €${((item.owned_volumes || 0) * (item.paid_price || 0)).toFixed(2)}
+                </div>
+                <div class="collection-status">
+                    <span class="status-badge owned">Posseduto</span>
+                    ${item.collection_status === 'complete' ? '<span class="status-badge read">Completo</span>' : ''}
+                    ${item.collection_status === 'collecting' ? '<span class="status-badge reading">In raccolta</span>' : ''}
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+// ====================================
+// UTILITY FUNCTIONS
+// ====================================
+
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diff = now - date;
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    
+    if (days === 0) return 'Oggi';
+    if (days === 1) return 'Ieri';
+    if (days < 7) return `${days} giorni fa`;
+    if (days < 30) return `${Math.floor(days / 7)} settimane fa`;
+    if (days < 365) return `${Math.floor(days / 30)} mesi fa`;
+    
+    return date.toLocaleDateString('it-IT');
+}
+
+function getRandomGradient() {
+    const gradients = [
+        '#FF6B6B, #4ECDC4',
+        '#667eea, #764ba2',
+        '#f093fb, #f5576c',
+        '#4facfe, #00f2fe',
+        '#43e97b, #38f9d7'
+    ];
+    return gradients[Math.floor(Math.random() * gradients.length)];
+}
+
+function updateElementText(id, text) {
+    const elements = document.querySelectorAll(`#${id}, .${id}`);
+    elements.forEach(el => {
+        if (el) el.textContent = text;
+    });
+}
+
+function updateElementValue(id, value) {
+    const el = document.getElementById(id);
+    if (el) el.value = value;
+}
+
+function getCurrentRating() {
+    const stars = document.querySelectorAll('.star-rating i.fas');
+    return stars.length;
+}
+
+function updateStarRating(rating) {
+    document.querySelectorAll('.star-rating i').forEach((star, index) => {
+        if (index < rating) {
+            star.classList.remove('far');
+            star.classList.add('fas');
+        } else {
+            star.classList.add('far');
+            star.classList.remove('fas');
+        }
+    });
+}
+
 
 async function apiCall(endpoint, options = {}) {
     const token = localStorage.getItem('token');
@@ -1055,4 +1799,4 @@ function loadUserSettings() {
     }
 }
 
-console.log('MangaBox App Loaded! 🚀');
+console.log('MangaBox App with Real DB Integration Loaded! 🚀');
