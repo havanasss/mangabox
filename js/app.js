@@ -820,58 +820,7 @@ function updateStarRating(rating) {
     });
 }
 
-
-async function apiCall(endpoint, options = {}) {
-    const token = localStorage.getItem('token');
-    
-    const headers = {
-        'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` }),
-        ...(options.headers || {})
-    };
-    
-    const fetchOptions = {
-        ...options,
-        headers: headers
-    };
-    
-    if (fetchOptions.body && typeof fetchOptions.body !== 'string') {
-        fetchOptions.body = JSON.stringify(fetchOptions.body);
-    }
-    
-    try {
-        const response = await fetch(`${API_BASE}/${endpoint}`, fetchOptions);
-        
-        let data;
-        const contentType = response.headers.get('content-type');
-        
-        if (contentType && contentType.includes('application/json')) {
-            data = await response.json();
-        } else {
-            const text = await response.text();
-            try {
-                data = JSON.parse(text);
-            } catch {
-                data = { error: text || 'Unknown error' };
-            }
-        }
-        
-        if (!response.ok) {
-            throw new Error(data.error || `HTTP ${response.status}`);
-        }
-        
-        return data;
-        
-    } catch (error) {
-        console.error('API Error:', error);
-        // Return fallback data instead of throwing
-        if (endpoint === 'manga-get') {
-            return { success: true, data: getFallbackManga() };
-        }
-        return { success: false, error: error.message };
-    }
-}
-
+ 
 // ====================================
 // AUTHENTICATION
 // ====================================
@@ -1055,25 +1004,7 @@ async function initHomePage() {
         await loadUserCollection();
     }
 }
-
-async function initProfilePage() {
-    console.log('Initializing profile page...');
-    
-    if (!userData.isLoggedIn) {
-        window.location.href = 'index.html';
-        return;
-    }
-    
-    // Load user collection
-    await loadUserCollection();
-    
-    // Update profile UI with real data
-    updateProfileUI();
-    
-    // Load user activity
-    await loadUserActivity();
-}
-
+ 
 async function initExplorePage() {
     console.log('Initializing explore page...');
     
@@ -1094,19 +1025,7 @@ async function initExplorePage() {
     // Setup search
     setupExploreSearch();
 }
-
-async function initListsPage() {
-    console.log('Initializing lists page...');
-    
-    if (!userData.isLoggedIn) {
-        showNotification('Devi effettuare il login per vedere le liste', 'warning');
-        return;
-    }
-    
-    await loadUserLists();
-    displayUserLists();
-}
-
+ 
 async function initFeedPage() {
     console.log('Initializing feed page...');
     
@@ -1128,18 +1047,7 @@ async function initMessagesPage() {
     
     loadConversations();
 }
-
-async function initReviewsPage() {
-    console.log('Initializing reviews page...');
-    
-    if (!userData.isLoggedIn) {
-        showNotification('Devi effettuare il login per vedere le recensioni', 'warning');
-        return;
-    }
-    
-    await loadUserReviews();
-    displayUserReviews();
-}
+ 
 
 async function initSettingsPage() {
     console.log('Initializing settings page...');
@@ -1388,25 +1296,7 @@ function displayUserLists() {
         </div>
     `).join('');
 }
-
-function displayUserReviews() {
-    const container = document.querySelector('.reviews-list');
-    if (!container) return;
-    
-    if (userReviews.length === 0) {
-        container.innerHTML = '<p>Non hai ancora scritto recensioni</p>';
-        return;
-    }
-    
-    container.innerHTML = userReviews.map(review => `
-        <div style="background: #1C2128; padding: 1.5rem; border-radius: 10px; margin-bottom: 1rem;">
-            <h3>${review.mangaTitle}</h3>
-            <div style="color: #FFD700;">${'⭐'.repeat(review.rating)}</div>
-            <p>${review.content}</p>
-            <small style="color: #9AB;">${new Date(review.date).toLocaleDateString()}</small>
-        </div>
-    `).join('');
-}
+ 
 
 // ====================================
 // MANGA MANAGEMENT
